@@ -1,6 +1,13 @@
+---
 name: "Static Analysis"
 
-on: [push]
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+  security-events: write
 
 jobs:
   codeql:
@@ -13,26 +20,25 @@ jobs:
         language: ['cpp']
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 1
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-    - name: apt-get install packages
-      run: sudo apt-get update -qq &&
-           sudo apt-get install --no-install-recommends -y
-               libyaml-dev
+      - name: apt-get install packages
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install --no-install-recommends -y libyaml-dev
 
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
-      with:
-        languages: ${{ matrix.language }}
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
 
-    - run: |
-       make
+      - run: make
 
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
 
   scan-build:
     name: scan-build
@@ -44,23 +50,22 @@ jobs:
         language: ['cpp']
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 1
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-    - name: apt-get install packages
-      run: sudo apt-get update -qq &&
-           sudo apt-get install --no-install-recommends -y
-               libyaml-dev
-               clang-tools
+      - name: apt-get install packages
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install --no-install-recommends -y libyaml-dev clang-tools
 
-    - name: scan-build
-      run: |
-       make clean
-       scan-build -sarif -o build/sarif make
+      - name: scan-build
+        run: |
+          make clean
+          scan-build -sarif -o build/sarif make
 
-    - name: upload scan-build
-      uses: github/codeql-action/upload-sarif@v2
-      with:
-        sarif_file: build/sarif
+      - name: upload scan-build
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: build/sarif
