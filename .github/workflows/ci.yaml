@@ -1,9 +1,14 @@
 name: CI
 on: [push]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   linux:
     name: '${{ matrix.os }}: ${{ matrix.compiler.vendor }}'
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -44,6 +49,7 @@ jobs:
   mac:
     name: 'macos: ${{ matrix.compiler.vendor }}'
     runs-on: macos-latest
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
